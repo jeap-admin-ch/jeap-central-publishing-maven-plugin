@@ -25,17 +25,28 @@
 
   <licenses>
     <license>
-      <name>The Apache License, Version 2.0</name>
-      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
     </license>
   </licenses>
 
-  <scm>
-    <url>https://github.com/jeap-admin-ch/jeap-central-publishing-maven-plugin</url>
-  </scm>
-
   <url>https://github.com/jeap-admin-ch/jeap-central-publishing-maven-plugin</url>
 
+  <scm>
+    <url>https://github.com/jeap-admin-ch/jeap-central-publishing-maven-plugin</url>
+    <connection>scm:git:git://github.com/jeap-admin-ch/jeap-central-publishing-maven-plugin.git</connection>
+    <developerConnection>scm:git:ssh://github.com:jeap-admin-ch/jeap-central-publishing-maven-plugin.git
+    </developerConnection>
+  </scm>
+  <developers>
+    <developer>
+      <name>BIT</name>
+      <email>jeap-community@bit.admin.ch</email>
+      <organization>Federal Office of Information Technology, Systems and Telecommunication FOITT</organization>
+      <organizationUrl>https://www.bit.admin.ch/</organizationUrl>
+    </developer>
+  </developers>
+  
   <parent>
     <groupId>org.sonatype.buildsupport</groupId>
     <artifactId>buildsupport</artifactId>
@@ -46,6 +57,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
+    <org.codehaus.mojo-license-maven-plugin.version>2.4.0</org.codehaus.mojo-license-maven-plugin.version>
+    <jeap-license-template.version>1.0.2</jeap-license-template.version>
   </properties>
 
   <dependencies>
@@ -332,6 +345,54 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>${org.codehaus.mojo-license-maven-plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>ch.admin.bit.jeap</groupId>
+            <artifactId>jeap-license-template</artifactId>
+            <version>${jeap-license-template.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>add-third-party</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-third-party</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.basedir}</outputDirectory>
+              <thirdPartyFilename>THIRD-PARTY-LICENSES.md</thirdPartyFilename>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <fileTemplate>/ch/admin/bit/jeap/third-party.md.ftl</fileTemplate>
+          <useMissingFile>true</useMissingFile>
+          <useRepositoryMissingFiles>false</useRepositoryMissingFiles>
+          <failOnMissing>true</failOnMissing>
+          <acceptPomPackaging>true</acceptPomPackaging>
+          <deployMissingFile>false</deployMissingFile>
+          <licenseMerges>
+            <!-- Avoid line breaks in the licenseMerge tags! -->
+            <licenseMerge>Apache License Version 2.0|Apache License, Version 2.0|The Apache Software License, Version 2.0|Apache Public License 2.0|Apache 2|Apache-2.0|Apache 2.0|Apache 2.0 License|Apache License 2.0|Apache Software License, version 2.0||The Apache License, Version 2.0|Apache License, version 2.0</licenseMerge>
+            <licenseMerge>MIT License|MIT license|The MIT License|MIT|The MIT License (MIT)|MIT-0</licenseMerge>
+            <licenseMerge>Mozilla Public License, Version 2.0|MPL 2.0</licenseMerge>
+            <licenseMerge>GNU General Public License, version 2 (GPL2), with the classpath exception|GPL2 w/ CPE</licenseMerge>
+            <licenseMerge>Eclipse Public License, Version 1.0|Eclipse Public License 1.0|Eclipse Public License - v 1.0|EPL 1.0</licenseMerge>
+            <licenseMerge>Eclipse Public License v2.0|Eclipse Public License v. 2.0|Eclipse Public License - v 2.0|EPL 2.0</licenseMerge>
+            <licenseMerge>Eclipse Distribution License - v 1.0|Eclipse Distribution License v. 1.0|Eclipse Distribution License (New BSD License)|EDL 1.0</licenseMerge>
+            <licenseMerge>Common Development and Distribution License (CDDL) v1.0|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0</licenseMerge>
+            <licenseMerge>BSD 2-Clause License|BSD-2-Clause</licenseMerge>
+            <licenseMerge>BSD License 3|BSD-3-Clause</licenseMerge>
+            <licenseMerge>Public Domain|Public Domain, per Creative Commons CC0</licenseMerge>
+          </licenseMerges>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <profiles>
@@ -485,7 +546,20 @@
         </plugins>
       </build>
     </profile>
-
   </profiles>
+
+  <distributionManagement>
+    <repository>
+      <id>${releaseRepositoryId}</id>
+      <name>${releaseRepositoryName}</name>
+      <url>${releaseRepositoryUrl}</url>
+    </repository>
+    <snapshotRepository>
+      <id>${snapshotRepositoryId}</id>
+      <name>${snapshotRepositoryName}</name>
+      <!--suppress UnresolvedMavenProperty -->
+      <url>${snapshotRepositoryUrl}</url>
+    </snapshotRepository>
+  </distributionManagement>
 
 </project>
