@@ -11,7 +11,7 @@
 
   <groupId>ch.admin.bit.jeap</groupId>
   <artifactId>jeap-central-publishing-maven-plugin</artifactId>
-  <version>0.7.0.1</version>
+  <version>0.7.0.2</version>
   <packaging>maven-plugin</packaging>
 
   <name>jEAP Central Publishing Maven Plugin</name>
@@ -19,8 +19,9 @@
   <description>
     This project is a maven plugin for publishing components in Maven Central, for more details
     on its usage see https://central.sonatype.org/publish/publish-portal-maven.
-    This plugin has been forked from Sonatype's central-publishing-maven-plugin. The only change is the creation
-    of the HTTP client, which has been patched to respect HTTP proxy system properties.
+    This plugin has been forked from Sonatype's central-publishing-maven-plugin. It patches the creation of the
+    HTTP client to respect HTTP proxy system properties, and adds timeouts and retries for failed requests to the
+    Central Publisher Portal.
   </description>
 
   <licenses>

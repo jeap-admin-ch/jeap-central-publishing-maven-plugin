@@ -13,11 +13,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import ch.admin.bit.jeap.central.publishing.PublishedComponentsVerifier;
+import ch.admin.bit.jeap.central.publishing.RetryConfig;
+import ch.admin.bit.jeap.central.publishing.UploadRetryState;
 import org.sonatype.central.publisher.client.PublisherClient;
 import org.sonatype.central.publisher.client.model.PublishingType;
 import org.sonatype.central.publisher.plugin.bundler.ArtifactBundler;
 import org.sonatype.central.publisher.plugin.config.PlexusContextConfig;
 import org.sonatype.central.publisher.plugin.deffer.ArtifactDeferrer;
+import org.sonatype.central.publisher.plugin.exceptions.DeploymentPublishFailedException;
+import org.sonatype.central.publisher.plugin.exceptions.DeploymentPublishTimedOutException;
 import org.sonatype.central.publisher.plugin.model.ArtifactWithFile;
 import org.sonatype.central.publisher.plugin.model.BundleArtifactRequest;
 import org.sonatype.central.publisher.plugin.model.ChecksumRequest;
@@ -440,6 +445,38 @@ public class PublishMojo
     }
 
     UploadArtifactRequest uploadRequest = new UploadArtifactRequest(deploymentName, bundleFile, publishingType);
+
+    // Patched compared to upstream repo: a bundle upload that was repeated after an ambiguous failure can leave a
+    // second, duplicate deployment behind, which then fails. If the components did make it to Maven Central, the
+    // release was successful and such a failure must not fail the build.
+    try {
+      uploadAndWait(uploadRequest);
+    }
+    catch (DeploymentPublishFailedException | DeploymentPublishTimedOutException e) {
+      if (!UploadRetryState.wasAmbiguouslyRetried()) {
+        throw e;
+      }
+
+      getLog().warn("The bundle upload had to be repeated, which may have created a duplicate deployment. "
+          + "Checking whether the components of this release are published on Maven Central.");
+
+      PublishedComponentsVerifier verifier = new PublishedComponentsVerifier(
+          componentPublishedChecker, RetryConfig.fromSystemProperties(), getLog());
+
+      if (!verifier.allComponentsPublished(stagingDirectory, publishingType == PublishingType.AUTOMATIC)) {
+        getLog().error("The components of this release are not published on Maven Central. Please check the "
+            + "deployments at " + centralBaseUrl + "/publishing/deployments, there may be a duplicate deployment "
+            + "left over from the repeated upload.");
+        throw e;
+      }
+
+      getLog().warn("All components of this release are published on Maven Central, an earlier upload attempt did "
+          + "succeed. Please check the deployments at " + centralBaseUrl + "/publishing/deployments and drop the "
+          + "duplicate deployment left over from the repeated upload.");
+    }
+  }
+
+  private void uploadAndWait(final UploadArtifactRequest uploadRequest) {
     String deploymentId = artifactUploader.upload(uploadRequest);
 
     if (waitUntilRequest == WaitUntilRequest.UPLOADED) {
