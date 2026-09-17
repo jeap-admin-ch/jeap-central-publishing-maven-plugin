@@ -7,6 +7,11 @@ the major and minor version of the upstream release it is based on, plus a fork 
 version; releases before 0.11.0.1 are not documented here. Up to 0.11.0.2 the fork revision was a fourth
 version part, which not every tool consuming the version could parse.
 
+## [0.12.0] - 2026-09-17
+
+### Dependencies
+- **ch.admin.bit.jeap:jeap-license-template**: 1.0.3 → 1.1.0 (minor)
+
 ## [0.11.3] - 2026-09-17
 
 ### Changed
