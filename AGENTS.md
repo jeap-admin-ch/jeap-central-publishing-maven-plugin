@@ -118,8 +118,9 @@ update [docs/architecture.md](docs/architecture.md) to describe the current diff
 ## Versioning
 
 - Semantic-ish versioning tracking the upstream release the fork is based on: the fork's version is the
-  upstream version plus a fork revision, currently `0.11.0.1` on top of upstream `0.11.0` (see
-  `<version>` in `pom.xml`); there is no `CHANGELOG.md` or `publiccode.yml` in this repository.
+  upstream version plus a fork revision, currently `0.11.0.2` on top of upstream `0.11.0` (see
+  `<version>` in `pom.xml`); releases are listed in [CHANGELOG.md](CHANGELOG.md), and there is no
+  `publiccode.yml` in this repository.
 - On a feature branch keep the `-SNAPSHOT` suffix if used; otherwise follow the version already set in
   `pom.xml`.
 - Use the JIRA ID from the branch name as the commit-message prefix (e.g. `JEAP-1234 Add ...`); do not
