@@ -3,14 +3,29 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). The version of this fork is
-the upstream release it is based on, plus a fork revision; releases before 0.11.0.1 are not documented here.
+the major and minor version of the upstream release it is based on, plus a fork revision as the patch
+version; releases before 0.11.0.1 are not documented here. Up to 0.11.0.2 the fork revision was a fourth
+version part, which not every tool consuming the version could parse.
 
-## [0.11.0.2] - 2026-09-17
+## [0.11.3] - 2026-09-17
+
+### Changed
+
+- Number the fork revision as the patch version (`0.11.3` instead of `0.11.0.3`): the four-part version of the
+  earlier releases is not parsable by every tool that consumes it.
+
+### Removed
+
+- The copy of upstream's `pom.xml`, its `pom.properties` and a `MANIFEST.MF` of upstream's sources jar under
+  `src/main/resources/META-INF`. They came in with the initial import of the fork, were packaged into the jar
+  under upstream's coordinates, and nothing read them.
 
 ### Dependencies
 
 - **ch.admin.bit.jeap:jeap-license-template**: 1.0.2 → 1.0.3 (patch)
 - **org.sonatype.plugins:nexus-staging-maven-plugin**: 1.6.13 → 1.7.0 (minor)
+
+## [0.11.0.2] - 2026-09-17
 
 ### Fixed
 

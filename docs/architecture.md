@@ -5,8 +5,9 @@
 to publish jEAP's open-source Maven artifacts to Maven Central via the
 [Central Publisher Portal](https://central.sonatype.org/publish/publish-portal-maven/).
 
-It currently tracks upstream release **0.11.0**; the fork's own version appends a fork revision to that
-(`0.11.0.2`).
+It currently tracks upstream release **0.11.0**; the fork's own version keeps upstream's major and minor
+version and carries the fork revision in the patch version (`0.11.3`, the third revision on top of upstream
+`0.11.0`).
 
 ## Why a fork
 
