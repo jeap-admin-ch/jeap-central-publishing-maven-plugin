@@ -97,9 +97,10 @@
     </dependency>
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
-      <!-- 4.x drops classes that Maven 3 still uses, for example XmlStreamReader -->
+      <!-- Keep on 3.x: 4.x drops classes that Maven 3 still uses, for example XmlStreamReader and Xpp3Dom.
+           renovate.json caps this dependency accordingly. -->
       <artifactId>plexus-utils</artifactId>
-      <version>4.1.0</version>
+      <version>3.6.2</version>
     </dependency>
     <dependency>
       <groupId>com.github.package-url</groupId>
