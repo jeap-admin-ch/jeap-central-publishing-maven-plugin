@@ -5,8 +5,8 @@
  */
 package ch.admin.bit.jeap.central.publishing;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.DEFAULT_MAX_RETRIES;
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.DEFAULT_SOCKET_TIMEOUT_SECONDS;
@@ -15,14 +15,14 @@ import static ch.admin.bit.jeap.central.publishing.RetryConfig.RETRY_INITIAL_DEL
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.RETRY_MAX_DELAY_SECONDS;
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.RETRY_ON_AMBIGUOUS_FAILURE;
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.SOCKET_TIMEOUT_SECONDS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class RetryConfigTest
+class RetryConfigTest
 {
-  @After
-  public void clearProperties() {
+  @AfterEach
+  void clearProperties() {
     System.clearProperty(SOCKET_TIMEOUT_SECONDS);
     System.clearProperty(MAX_RETRIES);
     System.clearProperty(RETRY_INITIAL_DELAY_SECONDS);
@@ -31,7 +31,7 @@ public class RetryConfigTest
   }
 
   @Test
-  public void defaultsAreUsedWhenNoPropertiesAreSet() {
+  void defaultsAreUsedWhenNoPropertiesAreSet() {
     RetryConfig config = RetryConfig.fromSystemProperties();
 
     assertEquals(DEFAULT_SOCKET_TIMEOUT_SECONDS, config.getSocketTimeoutSeconds());
@@ -41,7 +41,7 @@ public class RetryConfigTest
   }
 
   @Test
-  public void propertiesOverrideDefaults() {
+  void propertiesOverrideDefaults() {
     System.setProperty(SOCKET_TIMEOUT_SECONDS, "42");
     System.setProperty(MAX_RETRIES, "0");
     System.setProperty(RETRY_ON_AMBIGUOUS_FAILURE, "false");
@@ -55,7 +55,7 @@ public class RetryConfigTest
   }
 
   @Test
-  public void invalidValuesFallBackToTheDefaults() {
+  void invalidValuesFallBackToTheDefaults() {
     System.setProperty(SOCKET_TIMEOUT_SECONDS, "not a number");
     System.setProperty(MAX_RETRIES, "-1");
 
@@ -66,14 +66,14 @@ public class RetryConfigTest
   }
 
   @Test
-  public void emptyValuesFallBackToTheDefaults() {
+  void emptyValuesFallBackToTheDefaults() {
     System.setProperty(SOCKET_TIMEOUT_SECONDS, "  ");
 
     assertEquals(DEFAULT_SOCKET_TIMEOUT_SECONDS, RetryConfig.fromSystemProperties().getSocketTimeoutSeconds());
   }
 
   @Test
-  public void retryDelayGrowsExponentiallyUpToTheConfiguredMaximum() {
+  void retryDelayGrowsExponentiallyUpToTheConfiguredMaximum() {
     System.setProperty(RETRY_INITIAL_DELAY_SECONDS, "10");
     System.setProperty(RETRY_MAX_DELAY_SECONDS, "60");
 
@@ -87,7 +87,7 @@ public class RetryConfigTest
   }
 
   @Test
-  public void retryDelayCanBeSwitchedOff() {
+  void retryDelayCanBeSwitchedOff() {
     System.setProperty(RETRY_INITIAL_DELAY_SECONDS, "0");
     System.setProperty(RETRY_MAX_DELAY_SECONDS, "0");
 

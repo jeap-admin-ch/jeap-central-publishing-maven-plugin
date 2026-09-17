@@ -7,9 +7,12 @@ package org.sonatype.central.publisher.plugin.watcher;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map.Entry;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.sonatype.central.publisher.client.PublisherClient;
 import org.sonatype.central.publisher.client.model.DeploymentApiResponse;
@@ -20,23 +23,21 @@ import org.sonatype.central.publisher.plugin.model.WaitForDeploymentStateRequest
 import org.sonatype.central.publisher.plugin.model.WaitUntilRequest;
 import org.sonatype.central.publisher.plugin.utils.PurlUtils;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-@Component(role = DeploymentPublishedWatcher.class)
+@Named
+@Singleton
 public class DeploymentPublishedWatcherImpl
     extends AbstractLogEnabled
     implements DeploymentPublishedWatcher
 {
-  @Requirement
+  @Inject
   private PublisherClient publisherClient;
 
-  @Requirement
+  @Inject
   private PurlUtils purlUtils;
 
   @SuppressWarnings("unused") // used via reflection by Plexus
@@ -85,6 +86,7 @@ public class DeploymentPublishedWatcherImpl
           case VALIDATED:
           case PUBLISHING:
             if (waitUntilRequest == WaitUntilRequest.UPLOADED || waitUntilRequest == WaitUntilRequest.VALIDATED) {
+              outputWarnings(status);
               outputWhereToFinishPublishing(waitForDeploymentStateRequest, deploymentId);
               return;
             }
@@ -106,7 +108,13 @@ public class DeploymentPublishedWatcherImpl
     outputTimeout(deploymentId, status);
   }
 
+  private void outputWarnings(final DeploymentApiResponse status) {
+    status.getWarnings().forEach(msg -> getLogger().warn(msg));
+  }
+
   private void outputPublished(final DeploymentApiResponse status) {
+    outputWarnings(status);
+
     StringBuilder successMessage = new StringBuilder();
 
     successMessage
@@ -118,11 +126,6 @@ public class DeploymentPublishedWatcherImpl
     for (String purl : status.getPurls()) {
       String purlDisplay = purlUtils.toRepo1Url(purl).orElse(purl);
       successMessage.append(" - ").append(purlDisplay).append("\n");
-    }
-
-    String cherryBomUrl = status.getCherryBomUrl();
-    if (isNotBlank(cherryBomUrl)) {
-      successMessage.append("CherryBomb Report: ").append(cherryBomUrl);
     }
 
     getLogger().info(successMessage.toString());

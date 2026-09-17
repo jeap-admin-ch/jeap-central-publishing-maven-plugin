@@ -12,18 +12,21 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginContainer;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 
 import static org.sonatype.central.publisher.plugin.Constants.CLI_EXECUTION_ID;
 import static org.sonatype.central.publisher.plugin.Constants.DEFAULT_BUILD_DIR_NAME;
 
-@Component(role = MojoUtils.class)
+@Named
+@Singleton
 public class MojoUtilsImpl
     extends AbstractLogEnabled
     implements MojoUtils

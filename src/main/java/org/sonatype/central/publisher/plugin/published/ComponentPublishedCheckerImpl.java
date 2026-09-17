@@ -5,20 +5,23 @@
 
 package org.sonatype.central.publisher.plugin.published;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.sonatype.central.publisher.client.PublisherClient;
 import org.sonatype.central.publisher.client.PublisherClientFactory;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 
-@Component(role = ComponentPublishedChecker.class)
+@Named
+@Singleton
 public class ComponentPublishedCheckerImpl
     extends AbstractLogEnabled
     implements ComponentPublishedChecker
 {
-  @Requirement
+  @Inject
   private PublisherClient publisherClient;
 
   public ComponentPublishedCheckerImpl() {

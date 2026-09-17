@@ -30,9 +30,11 @@ public class Constants
 
   public static final String PUBLISH_GOAL_ID = "injected-central-publishing";
 
-  public static final String CENTRAL_PUBLISHING_PLUGIN_GROUP_ID = "org.sonatype.central";
+  // Patched compared to upstream repo: the coordinates of this fork, so that DeployLifecycleParticipant
+  // recognizes the plugin in the projects it inspects.
+  public static final String CENTRAL_PUBLISHING_PLUGIN_GROUP_ID = "ch.admin.bit.jeap";
 
-  public static final String CENTRAL_PUBLISHING_PLUGIN_ARTIFACT_ID = "central-publishing-maven-plugin";
+  public static final String CENTRAL_PUBLISHING_PLUGIN_ARTIFACT_ID = "jeap-central-publishing-maven-plugin";
 
   public static final String NEXUS_STAGING_PLUGIN_GROUP_ID = "org.sonatype.plugins";
 

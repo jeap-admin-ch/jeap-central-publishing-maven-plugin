@@ -5,6 +5,7 @@
 
 package org.sonatype.central.publisher.client.model;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public class DeploymentApiResponse
 
   private Map<String, List<String>> errors;
 
-  private String cherryBomUrl;
+  private List<String> warnings;
 
   public String getDeploymentId() {
     return deploymentId;
@@ -62,11 +63,11 @@ public class DeploymentApiResponse
     this.errors = errors;
   }
 
-  public String getCherryBomUrl() {
-    return cherryBomUrl;
+  public List<String> getWarnings() {
+    return warnings == null ? Collections.emptyList() : warnings;
   }
 
-  public void setCherryBomUrl(final String cherryBomUrl) {
-    this.cherryBomUrl = cherryBomUrl;
+  public void setWarnings(final List<String> warnings) {
+    this.warnings = warnings;
   }
 }

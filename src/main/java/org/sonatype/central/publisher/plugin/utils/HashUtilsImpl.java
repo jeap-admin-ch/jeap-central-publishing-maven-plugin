@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Optional;
 
-import org.codehaus.plexus.component.annotations.Component;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -20,7 +22,8 @@ import static java.nio.file.StandardOpenOption.WRITE;
 /**
  * Implementation of {@link HashUtils}
  */
-@Component(role = HashUtils.class)
+@Named
+@Singleton
 public class HashUtilsImpl
     extends AbstractLogEnabled
     implements HashUtils

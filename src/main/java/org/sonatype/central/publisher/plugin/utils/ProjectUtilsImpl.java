@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.sonatype.central.publisher.plugin.model.ArtifactWithFile;
 import org.sonatype.central.publisher.plugin.model.ChecksumRequest;
 
@@ -20,21 +24,20 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.artifact.ProjectArtifactMetadata;
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 
 import static java.util.stream.Collectors.toList;
 import static org.sonatype.central.publisher.plugin.Constants.POM_FILE_EXTENSION;
 
-@Component(role = ProjectUtils.class)
+@Named
+@Singleton
 public class ProjectUtilsImpl
     extends AbstractLogEnabled
     implements ProjectUtils
 {
   public static final String MAVEN_METADATA_CENTRAL_STAGING_XML = "maven-metadata-central-staging.xml";
 
-  @Requirement
+  @Inject
   private HashUtils hashUtils;
 
   public List<ArtifactWithFile> getArtifacts(

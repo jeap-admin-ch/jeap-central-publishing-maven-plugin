@@ -6,30 +6,21 @@
 package ch.admin.bit.jeap.central.publishing;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.sonatype.central.publisher.client.httpclient.RequestType;
 import org.sonatype.central.publisher.client.httpclient.auth.AuthProvider;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
-import org.apache.commons.io.IOUtils;
 import org.apache.hc.client5.http.HttpResponseException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.CONNECT_TIMEOUT_SECONDS;
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.MAX_RETRIES;
@@ -37,37 +28,27 @@ import static ch.admin.bit.jeap.central.publishing.RetryConfig.RETRY_INITIAL_DEL
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.RETRY_MAX_DELAY_SECONDS;
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.RETRY_ON_AMBIGUOUS_FAILURE;
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.SOCKET_TIMEOUT_SECONDS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sonatype.central.publisher.client.PublisherConstants.STATUS_ENDPOINT_URL;
 import static org.sonatype.central.publisher.client.PublisherConstants.UPLOAD_ENDPOINT_URL;
 
-public class RetryingHttpRequestExecutorTest
+class RetryingHttpRequestExecutorTest
 {
   private static final String DEPLOYMENT_ID = "e6a1e1f0-0000-0000-0000-000000000001";
 
-  /**
-   * Longer than the socket timeout configured below, so that the client runs into a read timeout.
-   */
-  private static final long LONGER_THAN_THE_SOCKET_TIMEOUT_MILLIS = 2_000;
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-  private HttpServer server;
-
-  private final AtomicInteger requestCount = new AtomicInteger();
+  private final StubPortal portal = new StubPortal();
 
   private AuthProvider authProvider;
 
   private Path bundleFile;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp(@TempDir final Path tempDir) throws IOException {
     UploadRetryState.reset();
 
     System.setProperty(SOCKET_TIMEOUT_SECONDS, "1");
@@ -79,17 +60,15 @@ public class RetryingHttpRequestExecutorTest
     authProvider = mock(AuthProvider.class);
     when(authProvider.getAuthHeaders()).thenReturn(new HashMap<>());
 
-    bundleFile = temporaryFolder.newFile("central-bundle.zip").toPath();
+    bundleFile = tempDir.resolve("central-bundle.zip");
     Files.write(bundleFile, "not really a zip".getBytes(StandardCharsets.UTF_8));
 
-    server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
-    server.setExecutor(Executors.newFixedThreadPool(4));
-    server.start();
+    portal.start();
   }
 
-  @After
-  public void tearDown() {
-    server.stop(0);
+  @AfterEach
+  void tearDown() {
+    portal.stop();
 
     System.clearProperty(SOCKET_TIMEOUT_SECONDS);
     System.clearProperty(CONNECT_TIMEOUT_SECONDS);
@@ -101,149 +80,80 @@ public class RetryingHttpRequestExecutorTest
   }
 
   @Test
-  public void uploadIsRepeatedUntilTheServerIsAvailableAgain() throws IOException {
-    respondToUploads(attempt -> attempt < 3 ? 503 : 200);
+  void uploadIsRepeatedUntilTheServerIsAvailableAgain() throws IOException {
+    portal.onUpload(attempt -> attempt < 3
+        ? StubPortal.Reply.status(503)
+        : StubPortal.Reply.ok(DEPLOYMENT_ID));
 
-    String response = upload();
-
-    assertEquals(DEPLOYMENT_ID, response);
-    assertEquals(3, requestCount.get());
-    assertFalse("a rejected upload cannot have been received by the portal",
-        UploadRetryState.wasAmbiguouslyRetried());
+    assertEquals(DEPLOYMENT_ID, upload());
+    assertEquals(3, portal.uploadAttempts());
+    assertFalse(UploadRetryState.wasAmbiguouslyRetried(),
+        "a rejected upload cannot have been received by the portal");
   }
 
   @Test
-  public void uploadIsRepeatedAfterAReadTimeoutAndMarkedAsAmbiguous() throws IOException {
-    respondToUploads(attempt -> {
-      if (attempt == 1) {
-        sleep(LONGER_THAN_THE_SOCKET_TIMEOUT_MILLIS);
-      }
-      return 200;
-    });
+  void uploadIsRepeatedAfterAReadTimeoutAndMarkedAsAmbiguous() throws IOException {
+    portal.onUpload(attempt -> attempt == 1
+        ? StubPortal.Reply.readTimeout()
+        : StubPortal.Reply.ok(DEPLOYMENT_ID));
 
-    String response = upload();
-
-    assertEquals(DEPLOYMENT_ID, response);
-    assertEquals(2, requestCount.get());
-    assertTrue("the portal may have received the bundle of the timed out attempt",
-        UploadRetryState.wasAmbiguouslyRetried());
+    assertEquals(DEPLOYMENT_ID, upload());
+    assertEquals(2, portal.uploadAttempts());
+    assertTrue(UploadRetryState.wasAmbiguouslyRetried(),
+        "the portal may have received the bundle of the timed out attempt");
   }
 
   @Test
-  public void uploadIsNotRepeatedAfterAReadTimeoutIfAmbiguousRetriesAreDisabled() {
+  void uploadIsNotRepeatedAfterAReadTimeoutIfAmbiguousRetriesAreDisabled() {
     System.setProperty(RETRY_ON_AMBIGUOUS_FAILURE, "false");
-    respondToUploads(attempt -> {
-      sleep(LONGER_THAN_THE_SOCKET_TIMEOUT_MILLIS);
-      return 200;
-    });
+    portal.onUpload(attempt -> StubPortal.Reply.readTimeout());
 
-    try {
-      upload();
-      fail("expected the read timeout to be propagated");
-    }
-    catch (IOException e) {
-      assertTrue(e.getClass().getName(), e instanceof SocketTimeoutException);
-    }
+    assertThrows(SocketTimeoutException.class, this::upload);
 
-    assertEquals(1, requestCount.get());
+    assertEquals(1, portal.uploadAttempts());
     assertFalse(UploadRetryState.wasAmbiguouslyRetried());
   }
 
   @Test
-  public void uploadIsNotRepeatedOnAClientError() {
-    respondToUploads(attempt -> 401);
+  void uploadIsNotRepeatedOnAClientError() {
+    portal.onUpload(attempt -> StubPortal.Reply.status(401));
 
-    try {
-      upload();
-      fail("expected the client error to be propagated");
-    }
-    catch (IOException e) {
-      assertTrue(e.getClass().getName(), e instanceof HttpResponseException);
-      assertEquals(401, ((HttpResponseException) e).getStatusCode());
-    }
+    HttpResponseException failure = assertThrows(HttpResponseException.class, this::upload);
 
-    assertEquals(1, requestCount.get());
+    assertEquals(401, failure.getStatusCode());
+    assertEquals(1, portal.uploadAttempts());
     assertFalse(UploadRetryState.wasAmbiguouslyRetried());
   }
 
   @Test
-  public void uploadFailsAfterTheConfiguredNumberOfAttempts() {
+  void uploadFailsAfterTheConfiguredNumberOfAttempts() {
     System.setProperty(MAX_RETRIES, "1");
-    respondToUploads(attempt -> 503);
+    portal.onUpload(attempt -> StubPortal.Reply.status(503));
 
-    try {
-      upload();
-      fail("expected the last failure to be propagated");
-    }
-    catch (IOException e) {
-      assertTrue(e.getClass().getName(), e instanceof HttpResponseException);
-    }
+    assertThrows(HttpResponseException.class, this::upload);
 
-    assertEquals(2, requestCount.get());
+    assertEquals(2, portal.uploadAttempts());
   }
 
   @Test
-  public void statusRequestIsRepeatedAfterAReadTimeoutWithoutMarkingTheUpload() throws IOException {
-    respond(STATUS_ENDPOINT_URL, attempt -> {
-      if (attempt == 1) {
-        sleep(LONGER_THAN_THE_SOCKET_TIMEOUT_MILLIS);
-      }
-      return 200;
-    });
+  void statusRequestIsRepeatedAfterAReadTimeoutWithoutMarkingTheUpload() throws IOException {
+    portal.onStatus(attempt -> attempt == 1
+        ? StubPortal.Reply.readTimeout()
+        : StubPortal.Reply.ok(DEPLOYMENT_ID));
 
     String response = RetryingHttpRequestExecutor.sendRequest(
-        authProvider, baseUrl() + STATUS_ENDPOINT_URL, new HashMap<>(), null, RequestType.POST);
+        authProvider, portal.baseUrl() + STATUS_ENDPOINT_URL, new HashMap<>(), null, RequestType.POST);
 
     assertEquals(DEPLOYMENT_ID, response);
-    assertEquals(2, requestCount.get());
-    assertFalse("only bundle uploads have a side effect worth warning about",
-        UploadRetryState.wasAmbiguouslyRetried());
+    assertEquals(2, portal.statusRequests());
+    assertFalse(UploadRetryState.wasAmbiguouslyRetried(),
+        "only bundle uploads have a side effect worth warning about");
   }
 
   private String upload() throws IOException {
     Map<String, String> params = new HashMap<>();
     params.put("name", "a deployment");
     return RetryingHttpRequestExecutor.sendRequest(
-        authProvider, baseUrl() + UPLOAD_ENDPOINT_URL, params, bundleFile, RequestType.POST);
-  }
-
-  private void respondToUploads(final StatusCodeForAttempt statusCode) {
-    respond(UPLOAD_ENDPOINT_URL, statusCode);
-  }
-
-  private void respond(final String path, final StatusCodeForAttempt statusCode) {
-    server.createContext(path, exchange -> {
-      int attempt = requestCount.incrementAndGet();
-      consumeRequestBody(exchange);
-      int status = statusCode.get(attempt);
-      byte[] body = status == 200 ? DEPLOYMENT_ID.getBytes(StandardCharsets.UTF_8) : new byte[0];
-      exchange.sendResponseHeaders(status, body.length == 0 ? -1 : body.length);
-      try (OutputStream out = exchange.getResponseBody()) {
-        out.write(body);
-      }
-    });
-  }
-
-  private static void consumeRequestBody(final HttpExchange exchange) throws IOException {
-    IOUtils.toByteArray(exchange.getRequestBody());
-  }
-
-  private static void sleep(final long millis) {
-    try {
-      Thread.sleep(millis);
-    }
-    catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
-  }
-
-  private String baseUrl() {
-    return "http://" + server.getAddress().getHostString() + ":" + server.getAddress().getPort();
-  }
-
-  @FunctionalInterface
-  private interface StatusCodeForAttempt
-  {
-    int get(int attempt);
+        authProvider, portal.baseUrl() + UPLOAD_ENDPOINT_URL, params, bundleFile, RequestType.POST);
   }
 }

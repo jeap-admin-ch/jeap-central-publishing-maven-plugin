@@ -4,24 +4,27 @@
  */
 package org.sonatype.central.publisher.plugin.uploader;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.sonatype.central.publisher.client.PublisherClient;
 import org.sonatype.central.publisher.client.PublisherClientFactory;
 import org.sonatype.central.publisher.client.model.PublishingType;
 import org.sonatype.central.publisher.plugin.exceptions.DeploymentPublishFailedException;
 import org.sonatype.central.publisher.plugin.model.UploadArtifactRequest;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 
 import static java.lang.String.format;
 
-@Component(role = ArtifactUploader.class)
+@Named
+@Singleton
 public class ArtifactUploaderImpl
     extends AbstractLogEnabled
     implements ArtifactUploader
 {
-  @Requirement
+  @Inject
   private PublisherClient publisherClient;
 
   @SuppressWarnings("unused") // used via reflection by Plexus

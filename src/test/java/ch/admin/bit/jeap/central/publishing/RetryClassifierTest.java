@@ -17,14 +17,14 @@ import ch.admin.bit.jeap.central.publishing.RetryClassifier.Decision;
 import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.HttpHostConnectException;
 import org.apache.hc.core5.http.NoHttpResponseException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class RetryClassifierTest
+class RetryClassifierTest
 {
   @Test
-  public void failuresBeforeTheRequestIsSentAreSafeToRetry() {
+  void failuresBeforeTheRequestIsSentAreSafeToRetry() {
     assertEquals(Decision.RETRY_SAFE, RetryClassifier.classify(new ConnectException("refused")));
     assertEquals(Decision.RETRY_SAFE, RetryClassifier.classify(new HttpHostConnectException("refused")));
     assertEquals(Decision.RETRY_SAFE, RetryClassifier.classify(new UnknownHostException("central.sonatype.com")));
@@ -33,7 +33,7 @@ public class RetryClassifierTest
   }
 
   @Test
-  public void failuresWhileTheRequestIsOnTheWireAreAmbiguous() {
+  void failuresWhileTheRequestIsOnTheWireAreAmbiguous() {
     assertEquals(Decision.RETRY_AMBIGUOUS, RetryClassifier.classify(new SocketTimeoutException("Read timed out")));
     assertEquals(Decision.RETRY_AMBIGUOUS, RetryClassifier.classify(new SocketException("Connection reset")));
     assertEquals(Decision.RETRY_AMBIGUOUS, RetryClassifier.classify(new SSLException("handshake failed")));
@@ -42,7 +42,7 @@ public class RetryClassifierTest
   }
 
   @Test
-  public void gatewayAndThrottlingResponsesAreSafeToRetry() {
+  void gatewayAndThrottlingResponsesAreSafeToRetry() {
     assertEquals(Decision.RETRY_SAFE, RetryClassifier.classify(429));
     assertEquals(Decision.RETRY_SAFE, RetryClassifier.classify(502));
     assertEquals(Decision.RETRY_SAFE, RetryClassifier.classify(503));
@@ -50,13 +50,13 @@ public class RetryClassifierTest
   }
 
   @Test
-  public void serverErrorsAreAmbiguous() {
+  void serverErrorsAreAmbiguous() {
     assertEquals(Decision.RETRY_AMBIGUOUS, RetryClassifier.classify(408));
     assertEquals(Decision.RETRY_AMBIGUOUS, RetryClassifier.classify(500));
   }
 
   @Test
-  public void clientErrorsAreNotRetried() {
+  void clientErrorsAreNotRetried() {
     assertEquals(Decision.FAIL, RetryClassifier.classify(400));
     assertEquals(Decision.FAIL, RetryClassifier.classify(401));
     assertEquals(Decision.FAIL, RetryClassifier.classify(403));

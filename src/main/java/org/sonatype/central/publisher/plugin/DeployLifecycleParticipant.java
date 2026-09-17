@@ -7,6 +7,9 @@ package org.sonatype.central.publisher.plugin;
 import java.util.Collection;
 import java.util.List;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
@@ -15,7 +18,6 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginContainer;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.logging.LogEnabled;
 import org.codehaus.plexus.logging.Logger;
 
@@ -29,10 +31,8 @@ import static org.sonatype.central.publisher.plugin.Constants.NEXUS_STAGING_PLUG
 import static org.sonatype.central.publisher.plugin.Constants.PUBLISH_GOAL;
 import static org.sonatype.central.publisher.plugin.Constants.PUBLISH_GOAL_ID;
 
-@Component(
-    role = AbstractMavenLifecycleParticipant.class,
-    hint = "org.sonatype.central.publisher.plugin.DeployLifecycleParticipant"
-)
+@Named("org.sonatype.central.publisher.plugin.DeployLifecycleParticipant")
+@Singleton
 public class DeployLifecycleParticipant
     extends AbstractMavenLifecycleParticipant
     implements LogEnabled

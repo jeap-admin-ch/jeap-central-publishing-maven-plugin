@@ -8,6 +8,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.sonatype.central.publisher.plugin.model.ArtifactWithFile;
 import org.sonatype.central.publisher.plugin.model.StageArtifactRequest;
 
@@ -18,26 +22,25 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.ArtifactRepositoryFactory;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 
 import static org.sonatype.central.publisher.plugin.Constants.LOCAL_STAGING_REPOSITORY_NAME;
 
-@Component(role = ArtifactStager.class)
+@Named
+@Singleton
 public class ArtifactStagerImpl
     extends AbstractLogEnabled
     implements ArtifactStager
 {
   private static final Object parallelLock = new Object();
 
-  @Requirement
+  @Inject
   private ArtifactInstaller artifactInstaller;
 
-  @Requirement
+  @Inject
   private ArtifactRepositoryFactory artifactRepositoryFactory;
 
-  @Requirement
+  @Inject
   private ArtifactRepositoryLayout artifactRepositoryLayout;
 
   @Override
@@ -56,7 +59,7 @@ public class ArtifactStagerImpl
       }
     }
     else {
-      getLogger().info("No files to stage!");
+      getLogger().info("No files to stage for artifact");
     }
   }
 

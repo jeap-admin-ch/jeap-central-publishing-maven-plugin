@@ -1,9 +1,14 @@
 # Getting started
 
+## Requirements
+
+The plugin is built for Java 25 and for Maven 3, so the build that publishes with it has to run on a JDK 25
+or newer.
+
 ## Using the plugin
 
-Declare the plugin in a project's `pom.xml` the same way you would the upstream
-`central-publishing-maven-plugin`:
+Declare the plugin in a project's `pom.xml`, bind its `publish` goal to the `deploy` phase and keep the
+default deploy from running:
 
 ```xml
 <plugin>
@@ -11,24 +16,45 @@ Declare the plugin in a project's `pom.xml` the same way you would the upstream
     <artifactId>jeap-central-publishing-maven-plugin</artifactId>
     <version>${jeap-central-publishing-maven-plugin.version}</version>
     <extensions>true</extensions>
+    <executions>
+        <execution>
+            <id>central-publish</id>
+            <phase>deploy</phase>
+            <goals>
+                <goal>publish</goal>
+            </goals>
+        </execution>
+    </executions>
     <configuration>
         <publishingServerId>central</publishingServerId>
         <autoPublish>true</autoPublish>
     </configuration>
 </plugin>
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-deploy-plugin</artifactId>
+    <executions>
+        <!-- Would otherwise run before the publish goal. -->
+        <execution>
+            <id>default-deploy</id>
+            <phase>none</phase>
+        </execution>
+    </executions>
+</plugin>
 ```
 
-Configure the `central` server's credentials (a Central Portal user token) in your Maven
-`settings.xml`, then run:
+[Goals and configuration](goals-and-configuration.md) documents every parameter of the goal, and describes
+when the lifecycle participant of the plugin adds that binding on its own.
+
+Configure the `central` server's credentials (a Central Portal user token) in your Maven `settings.xml`, then
+run:
 
 ```bash
 mvn deploy
 ```
 
-For the full set of configuration options (`autoPublish`, `waitUntil`, `deploymentName`,
-`centralBaseUrl`, checksum/signature handling, etc.) see the
-[upstream plugin documentation](https://central.sonatype.org/publish/publish-portal-maven/) — this
-fork does not add, remove, or rename any parameter.
+This fork does not add, remove or rename any parameter compared to
+[upstream](https://central.sonatype.org/publish/publish-portal-maven/).
 
 ## Proxy support
 
@@ -77,6 +103,7 @@ the build then fails on a read timeout, as it does with the upstream plugin.
 
 ## Related
 
+- [Goals and configuration](goals-and-configuration.md)
 - [Architecture](architecture.md)
 - [Publishing to Central via the Portal (upstream docs)](https://central.sonatype.org/publish/publish-portal-maven/)
 - [jeap-central-publishing-maven-plugin README](../README.md)

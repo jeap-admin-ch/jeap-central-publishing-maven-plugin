@@ -7,12 +7,15 @@ package org.sonatype.central.publisher.plugin.utils;
 
 import java.util.Optional;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
-import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 
-@Component(role = PurlUtils.class)
+@Named
+@Singleton
 public class PurlUtilsImpl
     extends AbstractLogEnabled
     implements PurlUtils

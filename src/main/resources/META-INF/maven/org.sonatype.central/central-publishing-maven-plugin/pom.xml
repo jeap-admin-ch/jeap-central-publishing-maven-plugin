@@ -11,7 +11,7 @@
 
   <groupId>org.sonatype.central</groupId>
   <artifactId>central-publishing-maven-plugin</artifactId>
-  <version>0.7.0</version>
+  <version>0.11.0</version>
   <packaging>maven-plugin</packaging>
 
   <name>Central Publishing Maven Plugin</name>
@@ -37,7 +37,7 @@
   <parent>
     <groupId>org.sonatype.buildsupport</groupId>
     <artifactId>buildsupport</artifactId>
-    <version>32</version>
+    <version>55</version>
   </parent>
 
   <properties>
@@ -94,7 +94,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.12.0</version>
+      <version>3.18.0</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -117,7 +117,6 @@
     <dependency>
       <groupId>org.mock-server</groupId>
       <artifactId>mockserver-client-java</artifactId>
-      <version>5.15.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -143,6 +142,7 @@
       <dependency>
         <groupId>org.mock-server</groupId>
         <artifactId>mockserver-client-java</artifactId>
+        <version>5.15.0</version>
         <exclusions>
           <exclusion>
             <groupId>org.yaml</groupId>
@@ -459,8 +459,8 @@
           </plugin>
           <plugin>
             <!-- use our own just built version -->
-            <groupId>${project.groupId}</groupId>
-            <artifactId>${project.artifactId}</artifactId>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
             <version>${project.version}</version>
             <executions>
               <execution>
@@ -474,10 +474,9 @@
             <extensions>true</extensions>
             <configuration>
               <publishingServerId>publisher</publishingServerId>
-              <centralBaseUrl>https://central.sonatype.com</centralBaseUrl>
               <deploymentName>Central Publishing Maven Plugin - ${project.version}</deploymentName>
-              <checksums>required</checksums>
-              <skipPublishing>false</skipPublishing>
+              <autoPublish>true</autoPublish>
+              <waitUtil>published</waitUtil>
             </configuration>
           </plugin>
         </plugins>

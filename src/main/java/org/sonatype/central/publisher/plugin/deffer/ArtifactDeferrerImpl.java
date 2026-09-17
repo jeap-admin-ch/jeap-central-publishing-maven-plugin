@@ -17,6 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.sonatype.central.publisher.plugin.model.ArtifactWithFile;
 import org.sonatype.central.publisher.plugin.model.DeferArtifactRequest;
@@ -38,8 +40,6 @@ import org.apache.maven.artifact.repository.metadata.Plugin;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.artifact.ProjectArtifactMetadata;
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -58,7 +58,8 @@ import static org.sonatype.central.publisher.plugin.Constants.LOCAL_STAGING_REPO
  * Highly inspired by the  <a href="https://github.com/sonatype/nexus-maven-plugins">nexus-maven-plugin</a>,
  * specifically the DeferredDeployStrategy and the AbstractDeployStrategy classes
  */
-@Component(role = ArtifactDeferrer.class)
+@Named
+@Singleton
 public class ArtifactDeferrerImpl
     extends AbstractLogEnabled
     implements ArtifactDeferrer
@@ -73,17 +74,13 @@ public class ArtifactDeferrerImpl
 
   private static final Object PARALLEL_LOCK = new Object();
 
-  @Requirement
   private final ArtifactRepositoryFactory artifactRepositoryFactory;
 
-  @Requirement
   @SuppressWarnings("deprecation")
   private final ArtifactRepositoryLayout artifactRepositoryLayout;
 
-  @Requirement
   private final ArtifactInstaller artifactInstaller;
 
-  @Requirement
   private final ArtifactDeployer artifactDeployer;
 
   @Inject
