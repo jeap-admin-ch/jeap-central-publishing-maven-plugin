@@ -5,6 +5,7 @@
  */
 package ch.admin.bit.jeap.central.publishing;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -58,6 +60,11 @@ class ComponentWiringTest
   private static final Path SISU_INDEX = CLASSES.resolve("META-INF/sisu/javax.inject.Named");
 
   private static final Path PLUGIN_DESCRIPTOR = CLASSES.resolve("META-INF/maven/plugin.xml");
+
+  /**
+   * Java 11, the level {@code maven.compiler.release} is set to. Java 8 would be 52, Java 21 is 65.
+   */
+  private static final int MAX_CLASS_FILE_MAJOR_VERSION = 55;
 
   @Test
   void theComponentIndexIsGenerated() throws IOException {
@@ -108,6 +115,33 @@ class ComponentWiringTest
         "the lifecycle participant should be indexed, otherwise Maven never calls it");
     assertEquals("org.sonatype.central.publisher.plugin.DeployLifecycleParticipant",
         DeployLifecycleParticipant.class.getAnnotation(Named.class).value());
+  }
+
+  /**
+   * The class files of the plugin are read by the sisu class scanner of the Maven that runs the plugin, and that
+   * scanner bundles an ASM as old as that Maven: Maven 3.9.9 cannot read class files newer than Java 21, older
+   * Maven 3.9.x not even those. A class file the scanner cannot parse is skipped silently, which leaves every
+   * component of the plugin unbound and fails the build of whoever publishes with it - not the build of this
+   * plugin, which is why nothing else here would notice.
+   */
+  @Test
+  void everyClassIsReadableByTheClassScannerOfAnOlderMaven() throws IOException {
+    List<String> tooNew = new ArrayList<>();
+    try (Stream<Path> classFiles = Files.walk(CLASSES)) {
+      for (Path classFile : (Iterable<Path>) classFiles.filter(ComponentWiringTest::isClassFile)::iterator) {
+        int majorVersion = majorVersionOf(classFile);
+        if (majorVersion > MAX_CLASS_FILE_MAJOR_VERSION) {
+          tooNew.add(CLASSES.relativize(classFile) + " (major version " + majorVersion + ")");
+        }
+      }
+    }
+
+    assertTrue(tooNew.isEmpty(),
+        tooNew.size() + " class files are newer than Java " + (MAX_CLASS_FILE_MAJOR_VERSION - 44)
+            + ", so the sisu scanner of an older Maven skips them and finds no component at all, for example "
+            + tooNew.subList(0, Math.min(3, tooNew.size()))
+            + ". Keep maven.compiler.release at " + (MAX_CLASS_FILE_MAJOR_VERSION - 44)
+            + "; maven.compiler.testRelease is what raises the level for the tests.");
   }
 
   /**
@@ -169,6 +203,21 @@ class ComponentWiringTest
     }
     assertFalse(roles.isEmpty(), "the publish mojo should declare the components it needs");
     return roles;
+  }
+
+  private static boolean isClassFile(final Path path) {
+    return path.getFileName().toString().endsWith(".class");
+  }
+
+  /**
+   * The major version a class file carries in the two bytes that follow its magic number and minor version.
+   */
+  private static int majorVersionOf(final Path classFile) throws IOException {
+    try (DataInputStream in = new DataInputStream(Files.newInputStream(classFile))) {
+      in.readInt(); // 0xCAFEBABE
+      in.readUnsignedShort(); // minor version
+      return in.readUnsignedShort();
+    }
   }
 
   private static Path codeSourceOf(final Class<?> type) {

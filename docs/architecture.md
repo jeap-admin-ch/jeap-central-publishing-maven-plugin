@@ -55,7 +55,7 @@ Upstream declares its components with Plexus annotations (`@Component`, `@Requir
 `META-INF/plexus/components.xml` with `org.codehaus.plexus:plexus-component-metadata`. That plugin is
 [deprecated](https://codehaus-plexus.github.io/plexus-containers/plexus-component-metadata/) in favour of
 `org.eclipse.sisu:sisu-maven-plugin`, and its project is archived since 2023 — its last release, 2.2.0,
-bundles ASM 9.6, which cannot read the Java 25 class files this fork compiles to
+bundles ASM 9.6, which cannot read class files newer than Java 21
 (`Unsupported class file major version 69`), and will never receive another fix.
 
 The fork therefore follows [Maven's documented migration path](https://maven.apache.org/maven-jsr330.html):
@@ -87,6 +87,18 @@ the plugin only in a profile that activates on the `sonar.host.url` property, wh
 set, so the fork declares `jacoco-maven-plugin` itself, with the same
 `prepare-agent`/`prepare-agent-integration` execution that `jeap-internal-spring-boot-parent` gives other
 jEAP projects.
+
+### Class files for Java 11
+
+JSR-330 components are found by scanning class files, and the scanner that matters is not the one in this
+build: it is the sisu scanner of the Maven that *runs* the plugin, bundling an ASM as old as that Maven.
+Maven 3.9.9 reads nothing newer than Java 21, and earlier 3.9.x even less. A class file it cannot parse is
+skipped without an error, which leaves every component of the plugin unbound and fails the publishing build
+with `No implementation for MojoUtils was bound`.
+
+The main classes are therefore compiled with `maven.compiler.release` 11, low enough for every Maven 3 in
+use, while `maven.compiler.testRelease` keeps the tests on the current JDK. `ComponentWiringTest` fails the
+build if a class file ever exceeds that level again.
 
 ## Module layout
 

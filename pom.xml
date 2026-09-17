@@ -56,7 +56,12 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>25</maven.compiler.release>
+    <!-- Patched compared to upstream repo: the plugin's classes are scanned at runtime by the sisu class scanner of
+         the Maven that runs the plugin, whose bundled ASM is as old as that Maven. Class files it cannot read make
+         every component of the plugin invisible, so the main classes are compiled for Java 11 while the build itself
+         and the tests stay on the current JDK. -->
+    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.testRelease>25</maven.compiler.testRelease>
     <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
     <sisu-maven-plugin.version>1.1.0</sisu-maven-plugin.version>
     <org.codehaus.mojo-license-maven-plugin.version>2.7.1</org.codehaus.mojo-license-maven-plugin.version>

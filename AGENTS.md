@@ -51,8 +51,11 @@ hook in the upstream code.
 ```
 
 - Parent: `org.sonatype.buildsupport:buildsupport`.
-- Builds with JDK 25 (`maven.compiler.release`) on the latest Maven 3.9.x. Dependencies therefore only have
-  to be Java 25 compatible, but they still have to work inside Maven 3: `plexus-utils` has to stay on 3.x,
+- Builds on JDK 25 and on the latest Maven 3.9.x, but the main classes are compiled for Java 11
+  (`maven.compiler.release`), because the sisu scanner of the Maven that *runs* the plugin has to be able to
+  read them — see [docs/architecture.md](docs/architecture.md). Only the tests are on 25
+  (`maven.compiler.testRelease`), so main code has to stay Java 11 compatible. Dependencies therefore only
+  have to be Java 25 compatible, but they still have to work inside Maven 3: `plexus-utils` has to stay on 3.x,
   for example, because 4.x drops classes Maven 3 uses, and the Maven 4 lines of the `maven-*` artifacts and
   of the plugin testing harness are off limits for the same reason.
 - `./mvnw` downloads Maven from the BIT-internal repository, so it only works inside the BIT network.
@@ -93,7 +96,7 @@ hook in the upstream code.
   to touch as little upstream code as possible, so that rebases stay cheap: when pulling in a new upstream
   release, re-apply the patches and do not reformat or refactor unrelated upstream code. The exception the
   fork has already taken is dependency health: upstream's Plexus DI was migrated to JSR-330 because
-  `plexus-component-metadata` is deprecated and its project archived, which left it unable to read Java 25
+  `plexus-component-metadata` is deprecated and its project archived, which left it unable to read current
   class files and unable to receive security fixes. A rebase therefore has to re-apply the annotation
   migration described in [docs/architecture.md](docs/architecture.md) — mechanical, but tree-wide.
 - **Do not reintroduce Plexus DI.** New components are `@Named`/`@Inject` (`javax.inject`, not

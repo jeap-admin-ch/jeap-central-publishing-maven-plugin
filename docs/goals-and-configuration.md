@@ -5,7 +5,7 @@ The plugin publishes a project's artifacts to Maven Central through the
 of the reactor into a local repository layout, zips them into one deployment bundle, uploads that bundle and
 then watches what the portal does with it.
 
-The plugin requires a build running on Java 25 or newer, on Maven 3.
+The plugin runs on Maven 3, on a JDK 11 or newer.
 
 ## Goals
 

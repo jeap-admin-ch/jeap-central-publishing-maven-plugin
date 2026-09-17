@@ -2,8 +2,8 @@
 
 ## Requirements
 
-The plugin is built for Java 25 and for Maven 3, so the build that publishes with it has to run on a JDK 25
-or newer.
+The plugin runs on Maven 3 and on a JDK 11 or newer, so it fits into the build that publishes with it
+without dictating a JDK.
 
 ## Using the plugin
 
