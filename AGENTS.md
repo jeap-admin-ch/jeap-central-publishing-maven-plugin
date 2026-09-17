@@ -72,6 +72,20 @@ hook in the upstream code.
 - Do not rely on `${...}` inside `File` parameters of the test pom; the harness leaves those unresolved.
   `PublishMojoIntegrationTest` therefore steers the plugin's working directories through the build
   directory of the project it puts into the session.
+- The suite is meant to be good enough to **auto-merge dependency updates**, so it is organized around what
+  an upgrade can break, not around classes:
+  - `ComponentWiringTest` checks the component index against the plugin descriptor. The harness brings its
+    own container, so no other test would notice a component that lost its `@Named`, or an upgrade that
+    stopped writing `META-INF/sisu/javax.inject.Named`.
+  - `PublishMojoIntegrationTest` drives the `publish` goal against `StubPortal` over real sockets, which is
+    what covers `httpclient5` and `jackson`. Variants of the mojo configuration live next to it as
+    `src/test/resources/unit/publish-project-*/pom.xml`.
+  - `ArtifactDeferrerImplTest` covers the snapshot path and the legacy `maven-*` artifact API it drives.
+  - `HashUtilsImplTest` pins the bundle checksums against the JDK's digests, `PurlUtilsImplTest` the purl
+    parsing - the two places where a Guava or `packageurl-java` upgrade would silently change output.
+- What no test covers is the plugin running inside a **real** Maven: only an invoker IT would, and `src/it`
+  was not taken over from upstream. `waitMaxTime` is likewise untested, as the plugin raises anything below
+  its 1800 s default.
 
 ## Conventions (load-bearing)
 

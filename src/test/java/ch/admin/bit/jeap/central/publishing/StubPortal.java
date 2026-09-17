@@ -45,6 +45,8 @@ class StubPortal
 
   private final AtomicInteger publishedRequests = new AtomicInteger();
 
+  private volatile String uploadAuthorization;
+
   private volatile IntFunction<Reply> uploadReply = attempt -> Reply.ok(DEPLOYMENT_ID);
 
   private volatile IntFunction<Reply> statusReply = attempt -> Reply.ok(deploymentStatus(DeploymentState.VALIDATED));
@@ -56,7 +58,10 @@ class StubPortal
   void start() throws IOException {
     server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
     server.setExecutor(Executors.newFixedThreadPool(4));
-    server.createContext(UPLOAD_ENDPOINT_URL, exchange -> handle(exchange, uploadAttempts, uploadReply));
+    server.createContext(UPLOAD_ENDPOINT_URL, exchange -> {
+      uploadAuthorization = exchange.getRequestHeaders().getFirst("Authorization");
+      handle(exchange, uploadAttempts, uploadReply);
+    });
     server.createContext(STATUS_ENDPOINT_URL, exchange -> handle(exchange, statusRequests, statusReply));
     server.createContext(PUBLISHED_ENDPOINT_URL, exchange -> handle(exchange, publishedRequests, publishedReply));
     server.start();
@@ -95,6 +100,13 @@ class StubPortal
     // may report must not fail the build
     publishedReply = attempt -> Reply.ok(
         "{\"published\":" + published + ",\"aFlagThisPluginDoesNotKnow\":true}");
+  }
+
+  /**
+   * The {@code Authorization} header of the last upload, so that tests can check the credentials really travel.
+   */
+  String uploadAuthorization() {
+    return uploadAuthorization;
   }
 
   int uploadAttempts() {

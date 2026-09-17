@@ -9,7 +9,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.Collections;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.inject.Inject;
 
@@ -43,6 +47,8 @@ import static ch.admin.bit.jeap.central.publishing.RetryConfig.RETRY_INITIAL_DEL
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.RETRY_MAX_DELAY_SECONDS;
 import static ch.admin.bit.jeap.central.publishing.RetryConfig.SOCKET_TIMEOUT_SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -58,6 +64,14 @@ import static org.mockito.Mockito.when;
 class PublishMojoIntegrationTest
 {
   private static final String POM = "classpath:/unit/publish-project/pom.xml";
+
+  private static final String POM_CHECKSUMS = "classpath:/unit/publish-project-checksums/pom.xml";
+
+  private static final String POM_SKIP = "classpath:/unit/publish-project-skip/pom.xml";
+
+  private static final String POM_UPLOADED = "classpath:/unit/publish-project-uploaded/pom.xml";
+
+  private static final String POM_PUBLISHED = "classpath:/unit/publish-project-published/pom.xml";
 
   private static final String GROUP_ID = "ch.admin.bit.jeap.test";
 
@@ -176,6 +190,86 @@ class PublishMojoIntegrationTest
     assertTrue(portal.publishedRequests() > 0, "the components should have been looked up on Maven Central");
   }
 
+  @Test
+  @InjectMojo(goal = "publish", pom = POM)
+  void aFailedDeploymentFailsTheBuild(final PublishMojo mojo) throws IOException {
+    givenAProjectToPublish();
+    portal.reportsDeploymentState(DeploymentState.FAILED);
+    portal.reportsPublished(false);
+
+    assertThrows(DeploymentPublishFailedException.class, mojo::execute);
+  }
+
+  @Test
+  @InjectMojo(goal = "publish", pom = POM_PUBLISHED)
+  void theBuildCanWaitUntilTheDeploymentIsPublished(final PublishMojo mojo) throws Exception {
+    givenAProjectToPublish();
+    portal.reportsDeploymentState(DeploymentState.PUBLISHED);
+
+    mojo.execute();
+
+    assertEquals(1, portal.uploadAttempts());
+    assertTrue(portal.statusRequests() > 0, "the deployment should have been watched until it was published");
+  }
+
+  @Test
+  @InjectMojo(goal = "publish", pom = POM_UPLOADED)
+  void theBuildDoesNotWaitWhenOnlyTheUploadIsRequested(final PublishMojo mojo) throws Exception {
+    givenAProjectToPublish();
+
+    mojo.execute();
+
+    assertEquals(1, portal.uploadAttempts(), "the bundle should still be uploaded");
+    assertEquals(0, portal.statusRequests(), "the deployment should not be watched when waiting is not requested");
+  }
+
+  @Test
+  @InjectMojo(goal = "publish", pom = POM_SKIP)
+  void nothingIsBundledOrUploadedWhenPublishingIsSkipped(final PublishMojo mojo) throws Exception {
+    givenAProjectToPublish();
+
+    mojo.execute();
+
+    assertEquals(0, portal.uploadAttempts(), "nothing should reach the portal when publishing is skipped");
+    assertFalse(Files.exists(bundleFile()), "no bundle should have been written to " + bundleFile());
+  }
+
+  @Test
+  @InjectMojo(goal = "publish", pom = POM_CHECKSUMS)
+  void theBundleHoldsTheArtifactsAndTheRequestedChecksums(final PublishMojo mojo) throws Exception {
+    givenAProjectToPublish();
+    portal.reportsDeploymentState(DeploymentState.VALIDATED);
+
+    mojo.execute();
+
+    List<String> entries = bundleEntries();
+    assertTrue(entries.stream().anyMatch(entry -> entry.endsWith(".pom")),
+        "the bundle should hold the pom of the project, but held " + entries);
+    for (String algorithm : List.of("md5", "sha1", "sha256", "sha512")) {
+      assertTrue(entries.stream().anyMatch(entry -> entry.endsWith("." + algorithm)),
+          "the bundle should hold the " + algorithm + " checksums, but held " + entries);
+    }
+  }
+
+  /**
+   * The user token is what authenticates a release; if it stopped reaching the portal, every release would fail.
+   */
+  @Test
+  @InjectMojo(goal = "publish", pom = POM)
+  void theUploadIsAuthenticatedWithTheUserTokenFromTheSettings(final PublishMojo mojo) throws Exception {
+    givenAProjectToPublish();
+    portal.reportsDeploymentState(DeploymentState.VALIDATED);
+
+    mojo.execute();
+
+    String authorization = portal.uploadAuthorization();
+    assertNotNull(authorization, "the upload should carry an Authorization header");
+    assertTrue(authorization.startsWith("UserToken "),
+        "the portal expects the user token scheme, but got: " + authorization);
+    assertEquals("a-user-token-name:a-user-token-secret", new String(Base64.getDecoder()
+        .decode(authorization.substring("UserToken ".length())), StandardCharsets.UTF_8));
+  }
+
   /**
    * Puts the project to publish into the session. This happens inside the test methods, as the harness sets the
    * session up again while it injects the mojo, which is after {@code @BeforeEach} has run.
@@ -241,6 +335,13 @@ class PublishMojoIntegrationTest
 
   private Path buildDirectory() {
     return projectDirectory.resolve("target");
+  }
+
+  private List<String> bundleEntries() throws IOException {
+    assertTrue(Files.exists(bundleFile()), "the bundle should have been created at " + bundleFile());
+    try (ZipFile bundle = new ZipFile(bundleFile().toFile())) {
+      return bundle.stream().map(ZipEntry::getName).toList();
+    }
   }
 
   private Path bundleFile() {

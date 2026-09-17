@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Variant of unit/publish-project/pom.xml, see the comment there: publishing switched off -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>ch.admin.bit.jeap.test</groupId>
+  <artifactId>publish-project</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>ch.admin.bit.jeap</groupId>
+        <artifactId>jeap-central-publishing-maven-plugin</artifactId>
+        <configuration>
+          <centralBaseUrl>${test.centralBaseUrl}</centralBaseUrl>
+          <deploymentName>test-deployment</deploymentName>
+          <autoPublish>true</autoPublish>
+          <checksums>none</checksums>
+          <skipPublishing>true</skipPublishing>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
