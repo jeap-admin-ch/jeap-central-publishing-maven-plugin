@@ -7,6 +7,12 @@ the major and minor version of the upstream release it is based on, plus a fork 
 version; releases before 0.11.0.1 are not documented here. Up to 0.11.0.2 the fork revision was a fourth
 version part, which not every tool consuming the version could parse.
 
+## [0.13.0] - 2026-09-23
+
+### Dependencies
+- **org.mockito:mockito-core**: 5.23.0 → 5.24.0 (minor)
+- **com.fasterxml.jackson.core:jackson-databind**: 2.22.2 → 2.22.3 (patch)
+
 ## [0.12.0] - 2026-09-17
 
 ### Dependencies
