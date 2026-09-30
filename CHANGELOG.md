@@ -7,6 +7,12 @@ the major and minor version of the upstream release it is based on, plus a fork 
 version; releases before 0.11.0.1 are not documented here. Up to 0.11.0.2 the fork revision was a fourth
 version part, which not every tool consuming the version could parse.
 
+## [0.14.0] - 2026-09-30
+
+### Dependencies
+- **com.google.guava:guava**: 33.7.1-jre → 33.7.2-jre (patch)
+- **org.apache.commons:commons-lang3**: 3.20.0 → 3.21.0 (minor)
+
 ## [0.13.0] - 2026-09-23
 
 ### Dependencies
