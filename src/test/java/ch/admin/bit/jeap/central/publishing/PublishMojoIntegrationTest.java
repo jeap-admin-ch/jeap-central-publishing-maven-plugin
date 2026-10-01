@@ -60,7 +60,8 @@ import static org.mockito.Mockito.when;
  * The maven-plugin-testing-harness configures the mojo from {@code src/test/resources/unit/publish-project/pom.xml}
  * and hands it a mocked {@link MavenSession}, which is completed here with the project to publish.
  */
-@MojoTest
+// Maven 3.10's artifact installer needs a real repository session when staging artifacts.
+@MojoTest(realRepositorySession = true)
 class PublishMojoIntegrationTest
 {
   private static final String POM = "classpath:/unit/publish-project/pom.xml";
@@ -117,6 +118,7 @@ class PublishMojoIntegrationTest
 
   @AfterEach
   void tearDown() {
+    legacySupport.setSession(null);
     portal.stop();
 
     System.clearProperty(SOCKET_TIMEOUT_SECONDS);

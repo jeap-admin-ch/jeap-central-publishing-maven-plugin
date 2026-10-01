@@ -72,6 +72,9 @@ hook in the upstream code.
 
 - Tests are JUnit 5. Mojos are tested with the JUnit 5 extension of the maven-plugin-testing-harness
   (`@MojoTest`, `@InjectMojo`), **not** with the deprecated JUnit 3/4 `AbstractMojoTestCase` or `MojoRule`.
+- Tests that use Maven's real artifact installer need `@MojoTest(realRepositorySession = true)`;
+  Maven 3.10 requires the repository session while staging. Set the `LegacySupport` session in the test
+  method after mojo injection and clear it in `@AfterEach`.
 - The harness hands the test a *mocked* `MavenSession`, and it sets that session up again while injecting
   the mojo. Stub the session (projects, settings, result) from inside the test method rather than from
   `@BeforeEach`, otherwise the stubbing is overwritten. Properties the test pom refers to via `${...}`
