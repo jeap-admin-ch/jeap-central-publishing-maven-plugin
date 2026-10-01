@@ -7,7 +7,7 @@ Guidance for AI coding agents working **in this repository**. For how to use the
 
 `jeap-central-publishing-maven-plugin` is a fork of Sonatype's
 [central-publishing-maven-plugin](https://github.com/sonatype/central-publishing-maven-plugin), used to
-publish jEAP's open-source Maven artifacts to Maven Central. **This fork has exactly three intentional
+publish jEAP's open-source Maven artifacts to Maven Central. **This fork has exactly four intentional
 behavioral changes versus upstream**:
 
 1. Its HTTP client is built with `useSystemProperties()`, so uploads respect the JVM's
@@ -18,6 +18,9 @@ behavioral changes versus upstream**:
    components published on Maven Central instead of failing the build.
 3. `Constants` holds this fork's plugin coordinates, so that `DeployLifecycleParticipant` recognizes the
    plugin in the projects it inspects.
+
+4. Release staging removes repository metadata and tracking files before generating checksums, including
+   the local metadata written by Maven 3.10.
 
 The first two live in `ch.admin.bit.jeap.central.publishing`, which has no counterpart upstream; the upstream
 classes only call into it.
@@ -38,7 +41,8 @@ src/main/java/ch/admin/bit/jeap/central/publishing/  # jEAP additions, no counte
 src/test/java/ch/admin/bit/jeap/central/publishing/  # tests for those additions (JUnit 5, Mockito)
 ```
 
-The three patched files named above are the ONLY upstream files with an intentional *functional* change.
+The three patched files named above and `plugin/bundler/ArtifactBundlerImpl.java` are the only upstream files
+with an intentional *functional* change. The bundler delegates cleanup to `StagingRepositoryMetadata`.
 Apart from the JSR-330 annotations (see below), everything else under `org.sonatype.central.publisher` is
 upstream code kept as close to the original as possible, to ease future rebases against new upstream
 releases. New behavior belongs in `ch.admin.bit.jeap.central.publishing`, called from the smallest possible

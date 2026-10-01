@@ -7,6 +7,13 @@ the major and minor version of the upstream release it is based on, plus a fork 
 version; releases before 0.11.0.1 are not documented here. Up to 0.11.0.2 the fork revision was a fourth
 version part, which not every tool consuming the version could parse.
 
+## [0.14.1] - 2026-10-01
+
+### Fixed
+
+- Remove local repository metadata and tracking files before generating release bundle checksums, so Maven
+  3.10 does not produce bundles rejected by Central with "content that does NOT have a .pom file".
+
 ## [0.14.0] - 2026-09-30
 
 ### Dependencies

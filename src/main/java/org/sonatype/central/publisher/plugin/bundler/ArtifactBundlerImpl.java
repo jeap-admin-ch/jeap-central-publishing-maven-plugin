@@ -4,6 +4,8 @@
  */
 package org.sonatype.central.publisher.plugin.bundler;
 
+import ch.admin.bit.jeap.central.publishing.StagingRepositoryMetadata;
+
 import java.io.File;
 import java.nio.file.Path;
 
@@ -26,8 +28,13 @@ public class ArtifactBundlerImpl
     extends AbstractLogEnabled
     implements ArtifactBundler
 {
+  private final ProjectUtils projectUtils;
+
+  // Patched compared to upstream repo: use JSR-330 constructor injection.
   @Inject
-  private ProjectUtils projectUtils;
+  public ArtifactBundlerImpl(final ProjectUtils projectUtils) {
+    this.projectUtils = projectUtils;
+  }
 
   @Override
   public Path bundle(final BundleArtifactRequest bundleArtifactRequest) {
@@ -50,7 +57,8 @@ public class ArtifactBundlerImpl
 
   @Override
   public void preBundle(final MavenProject project, final Path sourceDir, final ChecksumRequest checksumRequest) {
-    projectUtils.deleteGroupArtifactMavenMetadataCentralStagingXml(project, sourceDir);
+    // Patched compared to upstream repo: Maven 3.10 also stages local repository metadata and tracking files.
+    StagingRepositoryMetadata.remove(project, sourceDir);
     projectUtils.createChecksumFiles(project, sourceDir, checksumRequest);
   }
 }
