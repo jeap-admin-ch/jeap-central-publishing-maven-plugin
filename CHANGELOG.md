@@ -7,6 +7,11 @@ the major and minor version of the upstream release it is based on, plus a fork 
 version; releases before 0.11.0.1 are not documented here. Up to 0.11.0.2 the fork revision was a fourth
 version part, which not every tool consuming the version could parse.
 
+## [0.15.1] - 2026-10-11
+
+### Dependencies
+- **org.apache.httpcomponents.client5:httpclient5**: 5.6.4 → 5.6.5 (patch)
+
 ## [0.15.0] - 2026-10-01
 
 ### Dependencies
