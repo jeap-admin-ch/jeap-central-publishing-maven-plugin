@@ -11,7 +11,7 @@
 
   <groupId>ch.admin.bit.jeap</groupId>
   <artifactId>jeap-central-publishing-maven-plugin</artifactId>
-  <version>0.15.2</version>
+  <version>0.15.3</version>
   <packaging>maven-plugin</packaging>
 
   <name>jEAP Central Publishing Maven Plugin</name>
@@ -63,7 +63,7 @@
     <maven.compiler.release>11</maven.compiler.release>
     <maven.compiler.testRelease>25</maven.compiler.testRelease>
     <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
-    <sisu-maven-plugin.version>1.1.0</sisu-maven-plugin.version>
+    <sisu-maven-plugin.version>1.1.1</sisu-maven-plugin.version>
     <org.codehaus.mojo-license-maven-plugin.version>2.7.1</org.codehaus.mojo-license-maven-plugin.version>
     <jeap-license-template.version>1.1.0</jeap-license-template.version>
   </properties>
