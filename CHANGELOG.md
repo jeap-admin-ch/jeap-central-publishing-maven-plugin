@@ -7,6 +7,13 @@ the major and minor version of the upstream release it is based on, plus a fork 
 version; releases before 0.11.0.1 are not documented here. Up to 0.11.0.2 the fork revision was a fourth
 version part, which not every tool consuming the version could parse.
 
+## [0.16.0] - 2026-11-09
+
+### Dependencies
+- **org.codehaus.mojo:license-maven-plugin**: 2.7.1 → 2.8.0 (minor)
+- **com.google.guava:guava**: 33.7.2-jre → 33.8.0-jre (minor)
+- **org.codehaus.mojo:build-helper-maven-plugin**: 3.6.2 → 3.7.0 (minor)
+
 ## [0.15.5] - 2026-10-27
 
 ### Dependencies
