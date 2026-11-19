@@ -6,7 +6,7 @@ Guidance for AI coding agents working **in this repository**. For how to use the
 ## Project
 
 `jeap-central-publishing-maven-plugin` is a fork of Sonatype's
-[central-publishing-maven-plugin](https://github.com/sonatype/central-publishing-maven-plugin), used to
+[central-publishing-maven-plugin](https://central.sonatype.org/publish/publish-portal-maven/), used to
 publish jEAP's open-source Maven artifacts to Maven Central. **This fork has exactly four intentional
 behavioral changes versus upstream**:
 

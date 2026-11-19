@@ -1,7 +1,7 @@
 # Architecture
 
 `jeap-central-publishing-maven-plugin` is a fork of Sonatype's
-[central-publishing-maven-plugin](https://github.com/sonatype/central-publishing-maven-plugin), used
+[central-publishing-maven-plugin](https://central.sonatype.org/publish/publish-portal-maven/), used
 to publish jEAP's open-source Maven artifacts to Maven Central via the
 [Central Publisher Portal](https://central.sonatype.org/publish/publish-portal-maven/).
 
@@ -144,4 +144,3 @@ src/test/java/ch/admin/bit/jeap/central/publishing/   # JUnit 5 tests for the ad
 - [Getting started](getting-started.md)
 - [Goals and configuration](goals-and-configuration.md)
 - [Upstream: Publishing to Central via the Portal](https://central.sonatype.org/publish/publish-portal-maven/)
-- [Upstream project: central-publishing-maven-plugin](https://github.com/sonatype/central-publishing-maven-plugin)
