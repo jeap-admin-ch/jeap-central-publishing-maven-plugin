@@ -7,6 +7,12 @@ the major and minor version of the upstream release it is based on, plus a fork 
 version; releases before 0.11.0.1 are not documented here. Up to 0.11.0.2 the fork revision was a fourth
 version part, which not every tool consuming the version could parse.
 
+## [0.20.1] - 2026-11-22
+
+### Dependencies
+- **org.apache.maven:maven-plugin-api**: 3.10.1 → 3.10.2 (patch)
+- **org.apache.maven:maven-compat**: 3.10.1 → 3.10.2 (patch)
+
 ## [0.20.0] - 2026-11-19
 
 ### Dependencies
