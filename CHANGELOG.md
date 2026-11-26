@@ -7,6 +7,11 @@ the major and minor version of the upstream release it is based on, plus a fork 
 version; releases before 0.11.0.1 are not documented here. Up to 0.11.0.2 the fork revision was a fourth
 version part, which not every tool consuming the version could parse.
 
+## [0.22.0] - 2026-11-26
+
+### Dependencies
+- **org.codehaus.mojo:license-maven-plugin**: 2.9.0 → 2.10.0 (minor)
+
 ## [0.21.0] - 2026-11-25
 
 ### Dependencies
